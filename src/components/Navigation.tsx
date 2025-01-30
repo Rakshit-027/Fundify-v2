@@ -1,10 +1,30 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, Search, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, Search, X, User } from "lucide-react";
 import { Button } from "./ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+      });
+      navigate("/");
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm">
@@ -26,7 +46,19 @@ const Navigation = () => {
               <Search className="h-4 w-4 mr-2" />
               Search
             </Button>
-            <Button>Sign In</Button>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button onClick={handleSignOut}>Sign Out</Button>
+              </div>
+            ) : (
+              <Button onClick={() => navigate("/auth")}>Sign In</Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -66,7 +98,20 @@ const Navigation = () => {
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
-              <Button>Sign In</Button>
+              {user ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="text-gray-600 hover:text-primary px-2 py-1"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Button onClick={handleSignOut}>Sign Out</Button>
+                </>
+              ) : (
+                <Button onClick={() => navigate("/auth")}>Sign In</Button>
+              )}
             </div>
           </div>
         )}
